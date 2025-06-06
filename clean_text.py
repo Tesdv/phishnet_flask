@@ -4,7 +4,7 @@ from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 
 # Optional: Only needed once if used interactively
-# nltk.download('stopwords')
+nltk.download('stopwords')
 
 # Initialize stemmer and stopwords (move these outside the function for efficiency)
 stemmer = PorterStemmer()
