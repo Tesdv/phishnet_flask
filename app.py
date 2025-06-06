@@ -1,29 +1,26 @@
 from flask import Flask, request, jsonify
 import joblib
-import numpy as np
-
-from clean_text import clean_text  # your preprocessing function
-
-# Load model and TF-IDF vectorizer
-model = joblib.load('phishing_classifier.pkl')
-tfidf = joblib.load('tfidf.pkl')  # if you saved it separately
+from clean_text import clean_text  # if you separated it
+import os
 
 app = Flask(__name__)
 
-@app.route('/predict', methods=['POST'])
+# Load model + vectorizer
+model = joblib.load("phishing_classifier.pkl")
+tfidf = joblib.load("tfidf.pkl")
+
+@app.route("/predict", methods=["POST"])
 def predict():
-    email_text = request.data.decode('utf-8')  # Get raw string
+    try:
+        email_text = request.data.decode("utf-8")
+        cleaned = clean_text(email_text)
+        features = tfidf.transform([cleaned]).toarray()
+        pred = model.predict(features)
+        return jsonify({"prediction": "phishing" if pred[0] == 1 else "legitimate"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-    # Preprocess
-    cleaned = clean_text(email_text)
-    features = tfidf.transform([cleaned])
-
-    # Predict
-    prediction = model.predict(features)[0]
-    prob = model.predict_proba(features)[0][1]
-
-    result = "Phishing" if prob >= 0.98 else "Legitimate"
-    return jsonify({"prediction": result, "probability": prob})
-
-if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=5000)
+# For local or Render-style deploy
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
