@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from clean_text import clean_text, extract_features
+from clean_text import extract_features
 import joblib
 import os
 
